@@ -3,8 +3,9 @@ import google.generativeai as genai
 from google.colab import userdata
 
 # Configure the API with the key from Colab's secrets
-GOOGLE_API_KEY = userdata.get('GOOGLE_API_KEY')
-genai.configure(api_key=GOOGLE_API_KEY)
+GOOGLE_API_KEY = "AIzaSyCaff7NptusA0Tdaa_d03U86T4_YK5Lz_E"
+#GOOGLE_API_KEY = userdata.get('GOOGLE_API_KEY')
+#genai.configure(api_key=GOOGLE_API_KEY)
 
 # Use a reliable model name for generating content.
 model = genai.GenerativeModel('gemini-1.5-flash-latest')
