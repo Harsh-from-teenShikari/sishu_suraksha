@@ -1,11 +1,19 @@
+# app.py
 # Import the necessary libraries
+import streamlit as st
 import google.generativeai as genai
-from google.colab import userdata
+import os
 
-# Configure the API with the key from Colab's secrets
-GOOGLE_API_KEY = "AIzaSyCaff7NptusA0Tdaa_d03U86T4_YK5Lz_E"
-#GOOGLE_API_KEY = userdata.get('GOOGLE_API_KEY')
-#genai.configure(api_key=GOOGLE_API_KEY)
+# --- Securely Configure the API Key ---
+# When deploying, Streamlit will read this key from the app's secrets.
+# For local testing, you can put it in .streamlit/secrets.toml
+try:
+    # Use st.secrets to access the API key securely
+    api_key = st.secrets["GOOGLE_API_KEY"]
+    genai.configure(api_key=api_key)
+except KeyError:
+    st.error("API key not found. Please set the GOOGLE_API_KEY as a Streamlit secret.")
+    st.stop()
 
 # Use a reliable model name for generating content.
 model = genai.GenerativeModel('gemini-1.5-flash-latest')
@@ -13,13 +21,13 @@ model = genai.GenerativeModel('gemini-1.5-flash-latest')
 # This list will store all the symptoms the user provides
 all_symptoms = []
 
-# Define the core logic function with the new knowledge base prompt
-def get_newborn_health_advice(all_symptoms):
+# Define the core logic function with your knowledge base
+def get_newborn_health_advice(user_input_list):
     """
-    Analyzes all user-provided symptoms against a specific list of newborn danger signs
+    Analyzes user-provided symptoms against a specific list of newborn danger signs
     and provides a safety-focused, non-diagnostic recommendation.
     """
-    symptoms_string = " and ".join(all_symptoms)
+    symptoms_string = " and ".join(user_input_list)
 
     prompt = f"""
     You are a chatbot designed to provide direct, non-diagnostic information about newborn health concerns.
@@ -38,7 +46,7 @@ def get_newborn_health_advice(all_symptoms):
     - Central cyanosis (bluish lips/tongue): Indicates underlying cardiac or respiratory disease.
     - Pathological jaundice (appears on day 1, on palms/soles, or persists >2 weeks): Can lead to kernicterus.
     - Choking/cyanosis during first feed: May be due to Tracheo-esophageal fistula.
-    - Signs of cardiac disease: Significant distress with cyanosis, tachycardia, murmur, and hepatomegaly.
+    - Signs of cardiac disease: Significant distress with cyanosis, tachycardia, murmur and hepatomegaly.
     - Excessive weight loss: >10% in a term baby.
 
     Based on the following symptoms provided by a parent, identify the most probable problem from your knowledge base.
@@ -46,7 +54,7 @@ def get_newborn_health_advice(all_symptoms):
     Parent's description (all symptoms): "{symptoms_string}"
 
     Please provide a concise summary of the probable problem based on all the symptoms listed. Then, give a recommendation on whether to seek medical attention.
-    
+
     Your response must be in one of the following two formats:
     1. **Probable Problem: [A very brief, non-diagnostic summary based on the knowledge base]. Seek Immediate Medical Attention.** [A brief reason].
     2. **Probable Problem: [A very brief, non-diagnostic summary based on the knowledge base]. Consult a Medical Professional.** [A brief reason].
@@ -54,30 +62,34 @@ def get_newborn_health_advice(all_symptoms):
     response = model.generate_content(prompt)
     return response.text
 
-# Create a simplified function to run the chatbot
-def main():
-    """
-    The main function to interact with the user via a simple terminal interface.
-    """
-    print("Welcome to the SHISHU SURAKSHA. I can help you identify potential signs of serious problems.")
-   # print("Note: This is an AI assistant, not a medical professional. Always consult a real doctor.")
-    print("-----------------------------------------------------------------------------------------------------")
+# --- Streamlit UI ---
+st.title("👶 Newborn Health Assistant")
+st.markdown("This is an AI assistant to help you identify potential signs of serious problems in newborns.")
+st.warning("⚠️ **Disclaimer:** This is an AI assistant, not a medical professional. Always consult a real doctor for medical advice.")
 
-    while True:
-        user_input = input("Please describe a symptom (or type 'done' to finish): ")
-        if user_input.lower() == 'done':
-            if all_symptoms:
-                response = get_newborn_health_advice(all_symptoms)
-                print(f"\nAssistant: {response}")
-            else:
-                print("No symptoms provided. Thank you for using the assistant.")
-            break
-        elif user_input:
-            all_symptoms.append(user_input)
-            print(f"Symptom added: '{user_input}'.")
+if "all_symptoms" not in st.session_state:
+    st.session_state.all_symptoms = []
+
+def add_symptom():
+    symptom = st.session_state.symptom_input
+    if symptom:
+        st.session_state.all_symptoms.append(symptom)
+        st.session_state.symptom_input = "" # Clear the input box
+
+st.text_area("List all symptoms your newborn is experiencing:", key="symptom_input", on_change=add_symptom)
+st.button("Add Symptom")
+
+if st.session_state.all_symptoms:
+    st.subheader("Symptoms provided:")
+    for symptom in st.session_state.all_symptoms:
+        st.markdown(f"- {symptom}")
+
+    if st.button("Get Advice"):
+        if st.session_state.all_symptoms:
+            with st.spinner("Analyzing symptoms..."):
+                response = get_newborn_health_advice(st.session_state.all_symptoms)
+                st.success("Analysis complete!")
+                st.subheader("Assistant's Advice:")
+                st.markdown(response)
         else:
-            print("Please provide a symptom or type 'done'.")
-
-# Run the main function
-if __name__ == "__main__":
-    main()
+            st.warning("Please add at least one symptom.")
