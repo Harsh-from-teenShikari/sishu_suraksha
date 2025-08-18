@@ -64,7 +64,7 @@ def get_newborn_health_advice(user_input_list):
 
 # --- Streamlit UI ---
 from PIL import Image
-logo = "https://github.com/Harsh-from-teenShikari/sishu_suraksha/blob/main/1755520485031.jpg"
+logo = Image.open("1755520485031.jpg")
 st.image(logo, width=200)
 
 #st.title("👶 Shishu Suraksha")
