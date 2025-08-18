@@ -65,9 +65,9 @@ def get_newborn_health_advice(user_input_list):
 # --- Streamlit UI ---
 from PIL import Image
 logo = Image.open("1755520485031.jpg")
-st.image(logo, width=200)
+st.image(logo, width=150)
 
-#st.title("👶 Shishu Suraksha")
+st.title(" Shishu Suraksha")
 st.markdown("This is an AI assistant to help you identify potential signs of serious problems in newborns.")
 #st.warning("⚠️ **Disclaimer:** This is an AI assistant, not a medical professional. Always consult a real doctor for medical advice.")
 
