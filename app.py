@@ -63,7 +63,7 @@ def get_newborn_health_advice(user_input_list):
     return response.text
 
 # --- Streamlit UI ---
-st.title("👶 Shishu Suraksha")
+#st.title("👶 Shishu Suraksha")
 st.markdown("This is an AI assistant to help you identify potential signs of serious problems in newborns.")
 #st.warning("⚠️ **Disclaimer:** This is an AI assistant, not a medical professional. Always consult a real doctor for medical advice.")
 
